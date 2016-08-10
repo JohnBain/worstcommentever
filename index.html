@@ -33,7 +33,7 @@ $('#button').click(function() {
             url,
             function foo(data) {
                 $('#loading').html('loading...')
-                console.log(data.data)
+                
                 data.data.children.forEach(p => commentArray.push(p));
                 var url = baseUrl;
                 if (data.data.after != null) {

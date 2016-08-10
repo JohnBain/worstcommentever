@@ -1,0 +1,76 @@
+<!--DOCTYPE HTML-->
+
+<head>
+    <title>Worst. Post. Ever</title>
+</head>
+
+<body>
+    <div id="interface">
+        <h1 style="padding: 0px; margin: 0px">Worst. Comment. Ever.</h1>
+        <input type="text" id="username" placeholder="username"></input> <span id="error-indicator" style="color: red; font-size: 13px"></span>
+        <div id="button"><strong style="cursor: pointer; cursor: hand;">CLICK</strong>
+            <span id="loading" style="font-size: 10px; padding-left: 10px; font-family: 'Arial'; font-style: Italic"></span>
+        </div>
+    </div>
+    <div id="reddit-content"></div>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.js"></script>
+<script>
+var commentArray = [];
+
+function compare(a, b) {
+    if (a.score < b.score)
+        return -1;
+    if (a.score > b.score)
+        return 1;
+    return 0;
+}
+
+$('#button').click(function() {
+    $('#error-indicator').empty();
+    var getComments = function(url) {
+        $.getJSON(
+            url,
+            function foo(data) {
+                $('#loading').html('loading...')
+                console.log(data.data)
+                data.data.children.forEach(p => commentArray.push(p));
+                var url = baseUrl;
+                if (data.data.after != null) {
+                    var newUrl = url + '?after=' + data.data.after;
+                    getComments(newUrl);
+                } else {
+                    var finalArray = [];
+                    commentArray.forEach(e => finalArray.push(e.data))
+                    finalArray = finalArray.sort(compare)
+
+                    finalArray.slice(0, 100).forEach(function(p) {
+                        if (p.link_url.includes('reddit.com')) {
+                            $('#reddit-content').append(`<span><b>${p.score} points</b> in <b>/r/${p.subreddit}</b> post <b>${p.link_title}</b><span><p>${p.body}</p> 
+
+                            	<p style="color: blue"><a href='${p.link_url}${p.id}'>(permalink)</a></p>`)
+                        }
+                        else {$('#reddit-content').append(`<span><b>${p.score} points</b> in <b>/r/${p.subreddit}</b> post <b>${p.link_title}</b><span><p>${p.body}</p> 
+
+                        	<p style="color: blue"><a href='https:www.reddit.com/by_id/${p.link_id}'>(thread)</a></p>`)}
+                    });
+
+                    console.log(finalArray[2], finalArray[3]);
+                    $('#loading').empty();
+                    return;
+                }
+
+            }
+        ).fail(function() {
+            $('#error-indicator').html('user not found')
+        })
+
+
+
+    }
+
+    var baseUrl = 'https://www.reddit.com/user/' + $('#username').val() + '/comments/.json';
+    $('#reddit-content').empty()
+    getComments(baseUrl);
+});
+</script>
